@@ -1,0 +1,183 @@
+package assinement_2_blockchain;
+
+public class BlockChain2 {
+
+    public static void main(String[] args) {
+
+        BlockchainClass tcpCoin = new BlockchainClass();
+
+        BlockClass a = new BlockClass("0x200", new java.util.Date(), "<transactions>");
+        BlockClass b = new BlockClass("0x200", new java.util.Date(), "<transactions>");
+        BlockClass c = new BlockClass("0x200", new java.util.Date(), "<transactions>");
+
+        tcpCoin.addBlock(a);
+        tcpCoin.addBlock(b);
+        tcpCoin.addBlock(c);
+
+        tcpCoin.displayChain();
+        tcpCoin.isValid();
+        
+        
+        //if not valid
+        //tcpCoin.getLatestBlock().setPreviousHash("ABCDEFG");
+    }
+
+}
+
+
+package assinement_2_blockchain;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class BlockchainClass {
+
+	private List<BlockClass> chain;
+	
+	public BlockchainClass() {
+		chain = new ArrayList<BlockClass>();
+		chain.add(generateGenesis());
+	}
+	
+	private BlockClass generateGenesis() {
+		BlockClass genesis = new BlockClass("0x200", new java.util.Date(), "<transactions>");
+		genesis.setPreviousHash(null);
+		genesis.calculateHash();
+		return genesis;
+	}
+	
+	public void addBlock(BlockClass blk) {
+		BlockClass newBlock = blk;
+		newBlock.setPreviousHash(chain.get(chain.size()-1).getHash());
+		newBlock.calculateHash();
+		this.chain.add(newBlock);
+	}
+	
+	public void displayChain() {
+		
+		for(int i=0; i<chain.size(); i++) {
+			System.out.println("Block: " + i);
+			System.out.println("Version: " + chain.get(i).getVersion());
+			System.out.println("Timestamp: " + chain.get(i).getTimestamp());
+			System.out.println("PreviousHash: " + chain.get(i).getPreviousHash());
+			System.out.println("Hash: " + chain.get(i).getHash());
+			System.out.println();
+		}
+		
+	}
+	
+	public BlockClass getLatestBlock() {
+		return this.chain.get(chain.size()-1);
+	}
+	
+	public void isValid() {
+		
+		for(int i=chain.size()-1; i>0; i--) {
+			if(   !(chain.get(i).getHash().equals(chain.get(i).calculateHash()))   ) {
+				System.out.println("Chain is not valid");
+				return;
+			}
+			
+			if(  !(chain.get(i).getPreviousHash().equals(chain.get(i-1).calculateHash()))  ) {
+				System.out.println("Chain is not valid");
+				return;
+			}
+		}
+		
+		System.out.println("Chain is valid.");
+		
+	}
+	
+	
+}
+    
+
+
+
+package assinement_2_blockchain;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.Date;
+
+
+
+public class BlockClass {
+
+	private String version,hashCode,previousHashCode,data;
+	private Date Times;
+
+	
+	public BlockClass(String version, Date timestamp, String data) {
+		this.version = version;
+		this.Times = timestamp;
+		this.data = data;
+		this.hashCode = calculateHash();
+	}
+	
+	public String calculateHash() {
+		
+		String dataToHash = "" + this.version + this.Times + this.previousHashCode + this.data;
+		
+		MessageDigest digest;
+		String encoded = null;
+		
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(dataToHash.getBytes(StandardCharsets.UTF_8));
+			encoded = Base64.getEncoder().encodeToString(hash);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		
+		this.hashCode = encoded;
+		return encoded;
+		
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	public Date getTimestamp() {
+		return Times;
+	}
+
+	public void setTimestamp(Date timestamp) {
+		Times = timestamp;
+	}
+
+	public String getHash() {
+		return hashCode;
+	}
+
+	public void setHash(String hash) {
+		this.hashCode = hash;
+	}
+
+	public String getPreviousHash() {
+		return hashCode;
+	}
+
+	public void setPreviousHash(String previousHash) {
+		this.hashCode = previousHash;
+	}
+
+	public String getData() {
+		return data;
+	}
+
+	public void setData(String data) {
+		this.data = data;
+	}
+	
+	
+	
+}
+    
